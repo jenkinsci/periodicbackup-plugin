@@ -27,6 +27,7 @@ package org.jenkinsci.plugins.periodicbackup;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import hudson.util.DescribableList;
+import org.apache.commons.io.FileUtils;
 import org.codehaus.plexus.archiver.ArchiverException;
 
 import java.io.File;
@@ -86,23 +87,26 @@ public class BackupExecutor {
                         LOGGER.warning("Could not delete " + backupObjectFile.getAbsolutePath());
                     }
 
-                    List<BackupObject> backupsInLocation = Lists.newArrayList(location.getAvailableBackups());
-                    LOGGER.info("Checking for redundant and old backups in the location.");
+                    // Checking for redundant and old backups in the location
+                    if (location.getAvailableBackups() != null) {
+                        List<BackupObject> backupsInLocation = Lists.newArrayList(location.getAvailableBackups());
+                        LOGGER.info("Checking for redundant and old backups in the location.");
 
-                    int index1 = -1; // index in backupsInLocation if the number of backups exceeds the allowed one
-                    int index2 = -1; // index in backupsInLocation if the backups are older than allowed
+                        int index1 = -1; // index in backupsInLocation if the number of backups exceeds the allowed one
+                        int index2 = -1; // index in backupsInLocation if the backups are older than allowed
 
-                    if (backupsInLocation.size() > cycleQuantity) {
-                        index1 = backupsInLocation.size() - cycleQuantity;
-                    }
-                    for (BackupObject backupObj : backupsInLocation) {
-                        if(backupObj.getTimestamp().before(timeThreshold.getTime())) {
-                            index2++;
+                        if (backupsInLocation.size() > cycleQuantity) {
+                            index1 = backupsInLocation.size() - cycleQuantity;
                         }
-                    }
-                    if(index1 != -1 || index2 != -1) {
-                        for (int index = 0; index <= Math.max(index1, index2); index++) {
-                            location.deleteBackupFiles(backupsInLocation.get(index));
+                        for (BackupObject backupObj : backupsInLocation) {
+                            if (backupObj.getTimestamp().before(timeThreshold.getTime())) {
+                                index2++;
+                            }
+                        }
+                        if (index1 != -1 || index2 != -1) {
+                            for (int index = 0; index < Math.max(index1, index2); index++) {
+                                location.deleteBackupFiles(backupsInLocation.get(index));
+                            }
                         }
                     }
                 }
@@ -113,10 +117,17 @@ public class BackupExecutor {
 
             // Delete the temporary archive files
             for (File f : archives) {
-                LOGGER.info("Deleting temporary file " + f.getAbsolutePath());
-                if (!f.delete()) {
-                    LOGGER.warning("Could not delete " + f.getAbsolutePath());
+                if(f.isDirectory()) {
+                    LOGGER.info("Deleting temporary archive directory " + f.getAbsolutePath());
+                    FileUtils.deleteDirectory(f);
                 }
+                else {
+                    LOGGER.info("Deleting temporary file " + f.getAbsolutePath());
+                    if (!f.delete()) {
+                        LOGGER.warning("Could not delete " + f.getAbsolutePath());
+                    }
+                }
+
             }
         }
         LOGGER.info("Backup finished successfully after " + (System.currentTimeMillis() - start) + " ms" );

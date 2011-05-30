@@ -61,6 +61,7 @@ public class PeriodicBackupLink extends ManagementLink implements Describable<Pe
     private final DescribableList<Storage, StorageDescriptor> storagePlugins = new DescribableList<Storage, StorageDescriptor>(this);
 
     private transient String message;   // Message shown on the web page when the backup/restore is performed
+    private boolean backupNow = false;  // Flag to determine if backup is triggered by cron or manually
     private String tempDirectory;       // Temporary directory for local storage of files, it should not be placed anywhere inside the Jenkins homedir
     private String cron;                // Backup schedule (cron like)
     private int cycleQuantity;          // Maximum amount of backups allowed
@@ -90,6 +91,14 @@ public class PeriodicBackupLink extends ManagementLink implements Describable<Pe
         this.cron = cron;
     }
 
+    public boolean isBackupNow() {
+        return backupNow;
+    }
+
+    public void setBackupNow(boolean backupNow) {
+        this.backupNow = backupNow;
+    }
+
     @SuppressWarnings("unused")
     public int getCycleQuantity() {
         return cycleQuantity;
@@ -117,6 +126,7 @@ public class PeriodicBackupLink extends ManagementLink implements Describable<Pe
 
     @SuppressWarnings("unused")
     public void doBackup(StaplerRequest req, StaplerResponse rsp) throws Exception {
+        backupNow = true;
         PeriodicBackup.get().doRun();
         message = "Creating backup...";
         rsp.sendRedirect(".");
@@ -240,7 +250,7 @@ public class PeriodicBackupLink extends ManagementLink implements Describable<Pe
 
         private String validateCron(String cron) throws FormValidation {
             try {
-                CronTab testCronTab = new CronTab(cron);
+                new CronTab(cron);
             } catch (ANTLRException e) {
                 throw FormValidation.error(cron + " is not a valid cron syntax! " + e.getMessage());
             }

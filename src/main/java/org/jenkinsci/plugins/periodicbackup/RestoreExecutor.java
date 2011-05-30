@@ -56,23 +56,26 @@ public class RestoreExecutor implements Runnable {
             return;
         }
 
-        // The temp directory should be empty at this point
-        File[] tempDirFileList = tempDir.listFiles();
-        if(tempDirFileList.length > 0) {
-            LOGGER.warning("The temporary directory " + tempDir.getAbsolutePath() + " is not empty, deleting...");
+        // Result of RestoreExecutor will be place in /finalResult directory
+        File finalResultDir = new File(tempDir, "finalResult");
+
+        // The /finalResult directory should be empty at this point
+        File[] finalResultDirFileList = finalResultDir.listFiles();
+        if(finalResultDir.exists() && finalResultDirFileList.length > 0) {
+            LOGGER.warning("The final result directory " + finalResultDir.getAbsolutePath() + " is not empty, deleting...");
             try {
-                FileUtils.deleteDirectory(tempDir);
+                FileUtils.deleteDirectory(finalResultDir);
             } catch (IOException e) {
-                LOGGER.warning("Could not delete " + tempDir.getAbsolutePath() + " " + e.getMessage());
+                LOGGER.warning("Could not delete " + finalResultDir.getAbsolutePath() + " " + e.getMessage());
             }
-            if(!tempDir.exists()) {
-                LOGGER.info(tempDir.getAbsolutePath() + " deleted, making new directory");
-                if(!tempDir.mkdir()) {
-                    LOGGER.warning("Restoration Failure! Could not create " + tempDir.getAbsolutePath());
-                    // Setting message to an empty String will make the "Creating backup..." message disappear in the UI
-                    PeriodicBackupLink.get().setMessage("");
-                    return;
-                }
+        }
+        if (!finalResultDir.exists()) {
+            LOGGER.info(finalResultDir.getAbsolutePath() + " does not exist, making new directory");
+            if (!finalResultDir.mkdir()) {
+                LOGGER.warning("Restoration Failure! Could not create " + finalResultDir.getAbsolutePath());
+                // Setting message to an empty String will make the "Creating backup..." message disappear in the UI
+                PeriodicBackupLink.get().setMessage("");
+                return;
             }
         }
 
@@ -82,13 +85,14 @@ public class RestoreExecutor implements Runnable {
             archives = backupObject.getLocation().retrieveBackupFromLocation(backupObject, tempDir);
         } catch (Exception e) {
             LOGGER.warning("Could not retrieve backup from location. " + e.getMessage());
+            e.printStackTrace();
         }
 
-        // Extracting the backup archives to the temp directory
-        backupObject.getStorage().unarchiveFiles(archives, tempDir);
-        // At this point in the temp directory should be only the extracted backup archives
+        // Extracting the backup archives to the final result directory
+        backupObject.getStorage().unarchiveFiles(archives, finalResultDir);
+        // At this point in the /finalResult directory should be only the extracted backup archives
         try {
-            backupObject.getFileManager().restoreFiles(tempDir);
+            backupObject.getFileManager().restoreFiles(finalResultDir);
         } catch (Exception e) {
             LOGGER.warning("Could not restore files. " + e.getMessage());
         }

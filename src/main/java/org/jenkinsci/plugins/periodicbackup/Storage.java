@@ -71,9 +71,9 @@ public abstract class Storage extends AbstractModelObject implements Describable
      * after successful extraction the archives will be deleted
      *
      * @param archives backup archives
-     * @param tempDir Directory where the files will be extracted to, it should be empty at this point
+     * @param finalResultDir Directory where the files will be extracted to, it should be empty at this point
      */
-    public abstract void unarchiveFiles(Iterable<File> archives, File tempDir);
+    public abstract void unarchiveFiles(Iterable<File> archives, File finalResultDir);
 
     public StorageDescriptor getDescriptor() {
         return (StorageDescriptor) Hudson.getInstance().getDescriptor(getClass());

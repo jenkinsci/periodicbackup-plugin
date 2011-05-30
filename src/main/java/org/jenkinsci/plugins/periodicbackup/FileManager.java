@@ -54,12 +54,12 @@ public abstract class FileManager extends AbstractModelObject implements Describ
      *
      * This will restore files to their right place in the HUDSON directory
      *
-     * @param tempDir The temporary directory where the files for restoring are (and ONLY those files at this point)
+     * @param finalResultDir the temporary directory where ONLY the files for restoring are
      * @throws java.io.IOException IOException when IO problem
      * @throws PeriodicBackupException if anything else bad happens
      */
-    public void restoreFiles(File tempDir) throws IOException, PeriodicBackupException {
-        restorePolicy.restore(tempDir);
+    public void restoreFiles(File finalResultDir) throws IOException, PeriodicBackupException {
+        restorePolicy.restore(finalResultDir);
     }
 
     /**

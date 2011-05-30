@@ -86,6 +86,22 @@ public class BackupObject implements Comparable {
         };
     }
 
+    /**
+     *
+     * @return transformation function to convert String into BackupObject
+     */
+    public static Function<String, BackupObject> getFromString() {
+        return new Function<String, BackupObject>() {
+            public BackupObject apply(String content) {
+                if (content != null) {
+                    return (BackupObject) Hudson.XSTREAM.fromXML(content);
+                } else {
+                    return null;
+                }
+            }
+        };
+    }
+
     @SuppressWarnings("unused")
     public Date getTimestamp() {
         return this.timestamp;

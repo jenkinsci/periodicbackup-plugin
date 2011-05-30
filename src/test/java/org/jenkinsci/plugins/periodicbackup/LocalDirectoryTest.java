@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class LocalDirectoryTest extends HudsonTestCase {
     @Test
-    public void testGetAvailableBackups() throws Exception {
+    public void testGetAvailableBackups() {
         File path = new File(Resources.getResource("data/").getFile());
         LocalDirectory localDirectory = new LocalDirectory(path, true);
         Date expectedDate = new Date(123);

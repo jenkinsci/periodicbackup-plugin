@@ -37,10 +37,10 @@ public interface RestorePolicy {
      *
      * Restores content of the tempDir
      *
-     * @param tempDir temporary directory, at this point only unpacked content of the backup archives should be inside
+     * @param finalResultDir temporary directory, at this point only unpacked content of the backup archives should be inside
      * @throws IOException If an IO problem occurs
      * @throws PeriodicBackupException If other problem occurs
      */
-    void restore(File tempDir) throws IOException, PeriodicBackupException;
+    void restore(File finalResultDir) throws IOException, PeriodicBackupException;
 
 }

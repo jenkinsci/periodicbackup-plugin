@@ -31,6 +31,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import hudson.Extension;
 import hudson.util.FormValidation;
+import org.apache.commons.io.FileUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -79,7 +80,12 @@ public class LocalDirectory extends Location {
         if (this.enabled && path.exists()) {
             for (File archive : archives) {
                 File destination = new File(path, archive.getName());
-                Files.copy(archive, destination);
+                if(archive.isDirectory()) {
+                    FileUtils.copyDirectory(archive, destination);
+                }
+                else {
+                    Files.copy(archive, destination);
+                }
                 LOGGER.info(archive.getName() + " copied to " + destination.getAbsolutePath());
             }
             File backupObjectFileDestination = new File(path, backupObjectFile.getName());
@@ -97,8 +103,7 @@ public class LocalDirectory extends Location {
         File[] files = path.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
                 return (pathname.getName().contains( Util.getFormattedDate(BackupObject.FILE_TIMESTAMP_PATTERN, backup.getTimestamp())) &&
-                        !pathname.getName().endsWith(BackupObject.EXTENSION) &&
-                        pathname.isFile());
+                        !pathname.getName().endsWith(BackupObject.EXTENSION));
             }
         });
         if(files.length <= 0) {
@@ -111,11 +116,22 @@ public class LocalDirectory extends Location {
             File copiedFile = new File(tempDir, file.getName());
             if(copiedFile.exists()) {
                 LOGGER.warning(copiedFile.getAbsolutePath() + " already exists, deleting... ");
-                if(!copiedFile.delete()) {
-                    throw new PeriodicBackupException("Could not delete " + copiedFile.getAbsolutePath());
+                if(copiedFile.isDirectory()) {
+                    FileUtils.deleteDirectory(copiedFile);
+                }
+                else {
+                    if(!copiedFile.delete()) {
+                        throw new PeriodicBackupException("Could not delete " + copiedFile.getAbsolutePath());
+                    }
                 }
             }
-            Files.copy(file, copiedFile);
+            LOGGER.info("Copying " + file.getAbsolutePath() + " to " + copiedFile.getAbsolutePath());
+            if(file.isDirectory()) {
+                FileUtils.copyDirectory(file, copiedFile);
+            }
+            else {
+                FileUtils.copyFile(file, copiedFile);
+            }
             LOGGER.info("Archive " + file.getAbsolutePath() + " copied to " + copiedFile.getAbsolutePath());
             archivesInTemp.add(copiedFile);
         }
@@ -130,10 +146,21 @@ public class LocalDirectory extends Location {
         // Delete all the files containing the timestamp of the given BackupObject in their names
         for(File file : files) {
             if (file.getAbsolutePath().contains(filenamePart)) {
-                LOGGER.info("Deleting old/redundant backup file " + file.getAbsolutePath());
-                if(!file.delete()) {
-                    LOGGER.warning("Could not delete file " + file.getAbsolutePath());
+                if(file.isDirectory()) {
+                    LOGGER.info("Deleting old/redundant backup archive directory " + file.getAbsolutePath());
+                    try {
+                        FileUtils.deleteDirectory(file);
+                    } catch (IOException e) {
+                        LOGGER.warning("Could not delete the temporary archive directory. " + e.getMessage());
+                    }
                 }
+                else {
+                    LOGGER.info("Deleting old/redundant backup file " + file.getAbsolutePath());
+                    if(!file.delete()) {
+                        LOGGER.warning("Could not delete file " + file.getAbsolutePath());
+                    }
+                }
+
             }
         }
     }

@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Date;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -62,3 +62,4 @@ public class UtilTest extends TestCase {
     }
 
 }
+

@@ -50,27 +50,35 @@ public class PeriodicBackup extends AsyncPeriodicWork {
 
     @Override
     protected void execute(TaskListener taskListener) {
-        try {
-            PeriodicBackupLink link = PeriodicBackupLink.get();
-            CronTab cronTab = new CronTab(link.getCron());
-            long currentTime = System.currentTimeMillis();
-            if ((cronTab.ceil(currentTime).getTimeInMillis() - currentTime) == 0) {
-                BackupExecutor executor = new BackupExecutor();
-                try {
-                    executor.backup(link.getFileManagerPlugin(), link.getStorages(), link.getLocations(), link.getTempDirectory(), link.getCycleQuantity(), link.getCycleDays());
-                } catch (PeriodicBackupException e) {
-                    LOGGER.warning("Backup failure " + e.getMessage());
-                } catch (IOException e) {
-                    LOGGER.warning("Backup failure " + e.getMessage());
-                } catch (ArchiverException e) {
-                    LOGGER.warning("Backup failure " + e.getMessage());
-                } finally {
-                    // Setting message to an empty String will make the "Creating backup..." message disappear in the UI
-                    link.setMessage("");
+        PeriodicBackupLink link = PeriodicBackupLink.get();
+        String cron = link.getCron();
+        if(cron != null) {
+            try {
+
+                CronTab cronTab = new CronTab(link.getCron());
+                long currentTime = System.currentTimeMillis();
+                if ((cronTab.ceil(currentTime).getTimeInMillis() - currentTime) == 0 || link.isBackupNow()) {
+                    link.setBackupNow(false);
+                    BackupExecutor executor = new BackupExecutor();
+                    try {
+                        executor.backup(link.getFileManagerPlugin(), link.getStorages(), link.getLocations(), link.getTempDirectory(), link.getCycleQuantity(), link.getCycleDays());
+                    } catch (PeriodicBackupException e) {
+                        LOGGER.warning("Backup failure " + e.getMessage());
+                    } catch (IOException e) {
+                        LOGGER.warning("Backup failure " + e.getMessage());
+                    } catch (ArchiverException e) {
+                        LOGGER.warning("Backup failure " + e.getMessage());
+                    } finally {
+                        // Setting message to an empty String will make the "Creating backup..." message disappear in the UI
+                        link.setMessage("");
+                    }
                 }
+            } catch (ANTLRException e) {
+                LOGGER.warning("Could not parse given cron tab! " + e.getMessage());
             }
-        } catch (ANTLRException e) {
-            LOGGER.warning("Could not parse given cron tab! " + e.getMessage());
+        }
+        else {
+            LOGGER.warning("Cron is not defined.");
         }
     }
 
