@@ -8,6 +8,7 @@ import org.jvnet.hudson.test.HudsonTestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -61,7 +62,7 @@ public class LocalDirectoryTest extends HudsonTestCase {
     public void testRetrieveBackupFromLocation() throws Exception {
         File sourceDir = new File(Thread.currentThread().getContextClassLoader().getResource("data/").getFile());
         File tempDirectory = new File(Thread.currentThread().getContextClassLoader().getResource("data/temp").getFile());
-        Date testDate = new Date(123);
+        Date testDate = new Date(123-(Calendar.getInstance().get(Calendar.ZONE_OFFSET)));
         LocalDirectory localDirectory = new LocalDirectory(sourceDir, true);
         BackupObject backupObject = new BackupObject(new FullBackup(), new ZipStorage(false, 0), localDirectory, testDate);
 
@@ -70,6 +71,5 @@ public class LocalDirectoryTest extends HudsonTestCase {
 
         assertEquals(result.iterator().next(), expectedResult );
         assertTrue(expectedResult.exists());
-
     }
 }

@@ -38,7 +38,7 @@ import java.util.logging.Logger;
  */
 public class OverwriteRestorePolicy implements RestorePolicy {
 
-    private static final Logger LOGGER = Logger.getLogger(ReplaceRestorePolicy.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(OverwriteRestorePolicy.class.getName());
 
     public void restore(File tempDir) throws IOException {
         File hudsonRoot = Hudson.getInstance().getRootDir();

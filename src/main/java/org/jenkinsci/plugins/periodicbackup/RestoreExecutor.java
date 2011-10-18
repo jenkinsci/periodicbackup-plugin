@@ -25,10 +25,14 @@
 package org.jenkinsci.plugins.periodicbackup;
 
 import hudson.model.Hudson;
+import hudson.security.ACL;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RestoreExecutor implements Runnable {
@@ -97,14 +101,22 @@ public class RestoreExecutor implements Runnable {
             LOGGER.warning("Could not restore files. " + e.getMessage());
         }
         LOGGER.info("Reloading configuration...");
+        // Sometimes reload fails, because lack of permission.
+        // If user is allowed to do restore operation, also reload should be possible.
+        // Thus, we temporarily raise authentication for reload operation.
+        Authentication origAuth = SecurityContextHolder.getContext().getAuthentication();
+        SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
         try {
             Hudson.getInstance().doReload();
         } catch (IOException e) {
-            LOGGER.warning("Error reloading config files from disk.");
+            LOGGER.log(Level.WARNING, "Error reloading config files from disk: {0}", e.getMessage());
+        } finally {
+            LOGGER.log(Level.INFO, "Restoration finished after {0} ms", (System.currentTimeMillis() - start));
+            // Revert back to original authentication.
+            SecurityContextHolder.getContext().setAuthentication(origAuth);
+            // Setting message to an empty String will make the "Restoring backup..." message disappear in the UI
+            PeriodicBackupLink.get().setMessage("");
+            restartListener.ready();
         }
-        LOGGER.info("Restoration finished successfully after " + (System.currentTimeMillis() - start) + " ms");
-        // Setting message to an empty String will make the "Creating backup..." message disappear in the UI
-        PeriodicBackupLink.get().setMessage("");
-        restartListener.ready();
     }
 }

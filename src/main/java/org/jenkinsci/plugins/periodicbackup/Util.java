@@ -95,7 +95,6 @@ public class Util {
     public static File createBackupObjectFile(BackupObject backupObject, String destinationDir, String fileNameBase) throws IOException {
         File backupObjectFile = new File(destinationDir, createFileName(fileNameBase, BackupObject.EXTENSION));
         String xml = backupObject.getAsString();
-        System.out.println("[INFO] Building BackupObject file: " + backupObjectFile.getAbsolutePath());
         Files.write(xml, backupObjectFile, Charsets.UTF_8);
         return backupObjectFile;
     }
@@ -158,4 +157,3 @@ public class Util {
         return (directory.exists() && directory.isDirectory() && directory.canWrite());
     }
 }
-

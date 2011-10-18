@@ -42,7 +42,7 @@ import hudson.scheduler.CronTab;
 @Extension
 public class PeriodicBackup extends AsyncPeriodicWork {
 
-    private static final Logger LOGGER = Logger.getLogger(BackupExecutor.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(PeriodicBackup.class.getName());
 
     public PeriodicBackup() {
         super("PeriodicBackup");
