@@ -30,6 +30,7 @@ import hudson.model.Hudson;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.tar.TarArchiver;
 import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver;
+import org.codehaus.plexus.archiver.tar.TarLongFileMode;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -63,6 +64,11 @@ public class TarGzStorage extends Storage {
         } catch (org.codehaus.plexus.archiver.ArchiverException e) {
             LOGGER.warning("Cannot set compression value " + e.getMessage());
         }
+
+        // Support long filenames
+        TarLongFileMode fileMode = new TarLongFileMode();
+        fileMode.setValue(TarLongFileMode.GNU);
+        archiver.setLongfile(fileMode);
 
         archiver.setCompression(compression);
     }
