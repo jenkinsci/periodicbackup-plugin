@@ -64,21 +64,27 @@ public class ConfigOnly extends FileManager {
         // First find the xml files in the home directory
         File[] xmlsInRoot = rootDir.listFiles(Util.extensionFileFilter("xml"));
         filesToBackup.addAll(Arrays.asList(xmlsInRoot));
+        addJobFiles(rootDir, filesToBackup);
+        addUserFiles(rootDir, filesToBackup);
+        return filesToBackup;
+    }
+
+    private void addJobFiles(File rootDir, List<File> filesToBackup) {
         File jobsDir = new File(rootDir, "jobs");
-        if(jobsDir.exists() && jobsDir.isDirectory()) {
+        if (jobsDir.exists() && jobsDir.isDirectory()) {
             // Each job directory should have a config.xml file
             File[] dirsInJobs = jobsDir.listFiles((FileFilter) FileFilterUtils.directoryFileFilter());
-            for(File job : dirsInJobs) {
+            for (File job : dirsInJobs) {
                 File jobConfig = new File(job, "config.xml");
-                if(jobConfig.exists() && jobConfig.isFile()) {
+                if (jobConfig.exists() && jobConfig.isFile()) {
                     filesToBackup.add(jobConfig);
                     // There might be some config file from the Promotion plugin
                     File promotionDir = new File(job, "promotions");
-                    if(promotionDir.exists()) {
+                    if (promotionDir.exists()) {
                         File[] promotionDirs = promotionDir.listFiles((FileFilter) FileFilterUtils.directoryFileFilter());
                         for (File dir : promotionDirs) {
                             File promotionConfig = new File(dir, "config.xml");
-                            if(promotionConfig.exists() && promotionConfig.isFile()) {
+                            if (promotionConfig.exists() && promotionConfig.isFile()) {
                                 filesToBackup.add(promotionConfig);
                             }
                         }
@@ -89,7 +95,23 @@ public class ConfigOnly extends FileManager {
                 }
             }
         }
-        return filesToBackup;
+    }
+
+    private void addUserFiles(File rootDir, List<File> filesToBackup) {
+        File usersDir = new File(rootDir, "users");
+        if (usersDir.exists() && usersDir.isDirectory()) {
+            // Each user directory should have a config.xml file
+            File[] dirsInUsers = usersDir.listFiles((FileFilter) FileFilterUtils.directoryFileFilter());
+            for (File user : dirsInUsers) {
+                File userConfig = new File(user, "config.xml");
+                if (userConfig.exists() && userConfig.isFile()) {
+                    filesToBackup.add(userConfig);
+                }
+                else {
+                    LOGGER.warning(userConfig.getAbsolutePath() + " does not exist or is not a file.");
+                }
+            }
+        }
     }
 
     @Override
