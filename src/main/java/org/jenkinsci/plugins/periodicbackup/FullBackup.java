@@ -25,6 +25,8 @@
 package org.jenkinsci.plugins.periodicbackup;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import hudson.Extension;
 import hudson.model.Hudson;
@@ -32,7 +34,9 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
+
 
 /**
  *
@@ -41,13 +45,29 @@ import java.util.List;
  * and then it will write with files in the selected backup.
  */
 public class FullBackup extends FileManager {
+	
+	private final String excludesString;
+	private final File baseDir;
 
     @DataBoundConstructor
-    public FullBackup() {
-        super();
-        this.restorePolicy = new ReplaceRestorePolicy();
-    }
+	public FullBackup(String excludesString) {
+		this(excludesString, Hudson.getInstance().getRootDir());
+	}
 
+    /**
+     * Test Constructor
+     * 
+     * @param excludesString
+     * @param baseDir
+     */
+    FullBackup(String excludesString, File baseDir) {
+    	super();
+    	this.excludesString = excludesString;
+		this.baseDir = baseDir;
+    	this.restorePolicy = new ReplaceRestorePolicy();
+    }
+    
+    
     public String getDisplayName() {
         return "FullBackup";
     }
@@ -55,14 +75,22 @@ public class FullBackup extends FileManager {
     @Override
     public Iterable<File> getFilesToBackup() {
         DirectoryScanner directoryScanner = new DirectoryScanner(); // It will scan all files inside the root directory
-        directoryScanner.setBasedir(Hudson.getInstance().getRootDir());
+        directoryScanner.setBasedir(baseDir);
+        directoryScanner.setExcludes(Iterables.toArray(getExcludes(), String.class));
         directoryScanner.scan();
         List<File> files = Lists.newArrayList();
-        for(String s: directoryScanner.getIncludedFiles()) {
-            files.add(new File(directoryScanner.getBasedir(), s));
+        for (String s : directoryScanner.getIncludedFiles()) {
+          files.add(new File(directoryScanner.getBasedir(), s));
         }
         return files;
-    }
+      }
+    
+    private Iterable<String> getExcludes() {
+		if (this.excludesString == null) {
+			return Collections.emptyList();
+		}
+		return Lists.newArrayList(Splitter.on(';').trimResults().split(excludesString).iterator());
+	}
 
     @Override
     public boolean equals(Object o) {
@@ -77,7 +105,11 @@ public class FullBackup extends FileManager {
     @Override
     public int hashCode() {
         return 73;
-    }
+    }	
+    
+    public String getExcludesString() {
+		return excludesString;
+	}
 
     @SuppressWarnings("unused")
     @Extension

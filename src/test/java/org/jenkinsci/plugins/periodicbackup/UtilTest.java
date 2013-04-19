@@ -43,7 +43,7 @@ public class UtilTest extends TestCase {
     @Test
     public void testCreateBackupObjectFile() throws Exception {
         File tempDirectory = new File(Resources.getResource("data/temp").getFile());
-        BackupObject backupObject = new BackupObject(new FullBackup(), new ZipStorage(false, 0), new LocalDirectory(tempDirectory, true), new Date());
+        BackupObject backupObject = new BackupObject(new FullBackup("", new File("")), new ZipStorage(false, 0), new LocalDirectory(tempDirectory, true), new Date());
         String fileNameBase = "backupfile";
 
         File result = Util.createBackupObjectFile(backupObject, tempDirectory.getAbsolutePath(), fileNameBase);
