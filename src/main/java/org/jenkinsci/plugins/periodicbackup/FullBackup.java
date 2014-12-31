@@ -75,6 +75,7 @@ public class FullBackup extends FileManager {
     @Override
     public Iterable<File> getFilesToBackup() {
         DirectoryScanner directoryScanner = new DirectoryScanner(); // It will scan all files inside the root directory
+        directoryScanner.setFollowSymlinks(false);
         directoryScanner.setBasedir(baseDir);
         directoryScanner.setExcludes(Iterables.toArray(getExcludes(), String.class));
         directoryScanner.scan();
