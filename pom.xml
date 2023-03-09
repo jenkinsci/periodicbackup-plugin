@@ -130,7 +130,7 @@
         <java.level>8</java.level>
 
         <slf4jVersion>1.7.26</slf4jVersion>
-        <configuration-as-code.version>1.51</configuration-as-code.version>
+        <configuration-as-code.version>1.55.1</configuration-as-code.version>
     </properties>
 
     <build>
