@@ -83,7 +83,6 @@
                 <f:block>
                     <f:submit value="${%submit.title}"/>
                 </f:block>
-                <script src="${rootURL}/plugin/periodicbackup/js/configure.js"/>
 
             </f:form>
         </l:main-panel>
