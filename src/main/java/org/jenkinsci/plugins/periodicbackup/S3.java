@@ -41,7 +41,6 @@ import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.acegisecurity.AccessDeniedException;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -89,7 +88,7 @@ public class S3 extends Location {
         return objectSummarys
                 .parallelStream()
                 .filter(objectSummary ->
-                        StringUtils.endsWith(objectSummary.getKey(), BackupObject.EXTENSION)
+                        (objectSummary.getKey() != null && objectSummary.getKey().endsWith(BackupObject.EXTENSION))
                                 && isMatchPrefix(objectSummary.getKey())
                 )
                 .map(objectSummary -> {
@@ -110,9 +109,9 @@ public class S3 extends Location {
     private boolean isMatchPrefix(String key) {
         Path s3ParentFolder = Paths.get(key).getParent();
         if (s3ParentFolder == null) {
-            return StringUtils.isEmpty(prefix);
+            return hudson.Util.fixEmpty(prefix) == null;
         } else {
-            if (StringUtils.isEmpty(prefix)) {
+            if (hudson.Util.fixEmpty(prefix) == null) {
                 return false;
             } else {
                 return s3ParentFolder.startsWith(prefix);
@@ -185,7 +184,7 @@ public class S3 extends Location {
     }
 
     private List<S3ObjectSummary> getObjectSummaries(AmazonS3 client) {
-        ObjectListing objectListing = StringUtils.isEmpty(prefix) ? client.listObjects(bucket) : client.listObjects(bucket, prefix);
+        ObjectListing objectListing = hudson.Util.fixEmpty(prefix) == null ? client.listObjects(bucket) : client.listObjects(bucket, prefix);
         return objectListing.getObjectSummaries();
     }
 
@@ -197,7 +196,7 @@ public class S3 extends Location {
 
         List<S3ObjectSummary> objectSummarys = getObjectSummaries(client);
         for (S3ObjectSummary objectSummary : objectSummarys) {
-            if (StringUtils.contains(objectSummary.getKey(), filenamePart)) {
+            if ((objectSummary.getKey() != null && objectSummary.getKey().contains(filenamePart))) {
                 LOGGER.info("Deleting backupObject..." + objectSummary.getKey());
                 client.deleteObject(bucket, objectSummary.getKey());
                 LOGGER.info("Deleted backupObject..." + objectSummary.getKey());
@@ -206,7 +205,7 @@ public class S3 extends Location {
     }
 
     public String getDisplayName() {
-        if (StringUtils.isEmpty(prefix)) {
+        if (hudson.Util.fixEmpty(prefix) == null) {
             return "S3 bucket: " + bucket;
         } else {
             return "S3 bucket: " + bucket + " > " + prefix;
@@ -275,7 +274,7 @@ public class S3 extends Location {
 
     @Override
     public int hashCode() {
-        if (StringUtils.isEmpty(prefix)) {
+        if (hudson.Util.fixEmpty(prefix) == null) {
             return Objects.hashCode(bucket, enabled);
         } else {
             return Objects.hashCode(bucket, enabled, prefix);
