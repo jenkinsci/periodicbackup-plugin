@@ -29,7 +29,6 @@ import java.util.Optional;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import org.apache.commons.lang.StringUtils;
 
 import com.cloudbees.jenkins.plugins.awscredentials.AmazonWebServicesCredentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -43,10 +42,10 @@ class AmazonUtil {
         AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
         // Use credentials if provided. If not, it'll use the credentials in aws profile
         // ~/.aws from host
-        if (!StringUtils.isEmpty(region)) {
+        if (hudson.Util.fixEmpty(region) != null) {
             builder.setRegion(region);
         }
-        if (!StringUtils.isEmpty(credentialsId)) {
+        if (hudson.Util.fixEmpty(credentialsId) != null) {
             builder.setCredentials(getCredentials(credentialsId));
         }
 

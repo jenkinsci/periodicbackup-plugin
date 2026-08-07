@@ -36,7 +36,6 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -77,8 +76,8 @@ public class FullBackup extends FileManager {
     FullBackup(@CheckForNull String includesString, @CheckForNull String excludesString,
                 boolean followSymbolicLinks, @Nonnull File baseDir) {
         super();
-        this.includesString = StringUtils.trimToNull(includesString);
-        this.excludesString = StringUtils.trimToNull(excludesString);
+        this.includesString = hudson.Util.fixEmptyAndTrim(includesString);
+        this.excludesString = hudson.Util.fixEmptyAndTrim(excludesString);
         this.followSymbolicLinks = followSymbolicLinks;
         this.baseDir = baseDir;
         this.restorePolicy = new ReplaceRestorePolicy();
